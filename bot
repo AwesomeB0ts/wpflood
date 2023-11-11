@@ -1,0 +1,63 @@
+import requests
+import json
+import time
+import base64
+import argparse
+import random
+import string
+ 
+# create the argument parser
+parser = argparse.ArgumentParser(description='Post comments on WordPress posts.')
+parser.add_argument('comment_text', type=str, help='The text of the comment to post.')
+ 
+# parse the command line arguments
+args = parser.parse_args()
+ 
+# your WordPress site details
+site_url = 'https://yourwordpresssite.com'
+username = 'yourusername'
+password = 'yourapplicationpassword'
+ 
+# the post IDs you want to comment on
+post_ids = list(range(1, 2))  # posts from 83755 to 83765
+ 
+# the comment details
+comment_data = {
+    'author_name': 'Bot',
+    'author_email': 'bot@bot.com',
+    'content': args.comment_text,  # use the command line argument for the comment text
+}
+ 
+# the headers for the API request
+headers = {
+    'Content-Type': 'application/json',
+    'Authorization': 'Basic ' + base64.b64encode((username + ':' + password).encode()).decode()
+}
+ 
+# the URL for the Comments endpoint
+url = f'{site_url}/wp-json/wp/v2/comments'
+ 
+# loop over each post ID
+for post_id in post_ids:
+    # add the post ID to the comment data
+    comment_data['post'] = post_id
+ 
+    # loop to post 20 comments
+    for i in range(20):
+        # generate a random three-character string
+        random_string = ''.join(random.choices(string.ascii_letters + string.digits, k=3))
+ 
+        # add the random string to the comment text
+        comment_data['content'] = args.comment_text + ' ' + random_string
+ 
+        # send the POST request to create the comment
+        response = requests.post(url, headers=headers, data=json.dumps(comment_data))
+ 
+        # check if the comment was posted successfully
+        if response.status_code == 201:
+            print('Comment posted successfully.')
+        else:
+            print('Failed to post comment. Response from server:', response.text)
+ 
+        # delay for 9 seconds before the next comment
+        time.sleep(9)
